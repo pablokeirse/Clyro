@@ -30,9 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: IndexedStack(index: _navIndex, children: pages),
+      extendBody: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, AppColors.accentBlueLight],
+            stops: [0.0, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: IndexedStack(index: _navIndex, children: pages),
+        ),
       ),
       bottomNavigationBar: ClyroBottomNav(
         currentIndex: _navIndex,
@@ -134,7 +145,7 @@ class _MyServicesTab extends StatelessWidget {
     ];
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: [
         const Text(
           'Your recent requests',
@@ -243,7 +254,7 @@ class _LearnHowClyroWorksTab extends StatelessWidget {
       ('3', 'Chat, book, and get it done'),
     ];
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       children: steps
           .map((s) => Padding(
                 padding: const EdgeInsets.only(bottom: 16),

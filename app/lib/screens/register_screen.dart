@@ -68,97 +68,145 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                  ),
-                  children: [
-                    TextSpan(text: 'Create your\n'),
-                    TextSpan(
-                      text: 'CLYRO',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.accentBlue,
-                        fontSize: 34,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primaryPurpleLight, Colors.white, AppColors.accentBlueLight],
+            stops: [0.0, 0.55, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryPurple.withOpacity(0.12),
+                        blurRadius: 40,
+                        offset: const Offset(0, 16),
                       ),
-                    ),
-                    TextSpan(text: ' account'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(hintText: 'Full name...'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(hintText: 'E-mail address...'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscure,
-                decoration: InputDecoration(
-                  hintText: 'Password...',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () => setState(() => _obscure = !_obscure),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primaryPurple, AppColors.accentBlue],
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(height: 20),
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                          children: [
+                            TextSpan(text: 'Create your\n'),
+                            TextSpan(
+                              text: 'CLYRO',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.accentBlue,
+                                fontSize: 30,
+                              ),
+                            ),
+                            TextSpan(text: ' account'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      TextField(
+                        controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(hintText: 'Full name...'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(hintText: 'E-mail address...'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: _obscure,
+                        decoration: InputDecoration(
+                          hintText: 'Password...',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              color: AppColors.textSecondary,
+                            ),
+                            onPressed: () => setState(() => _obscure = !_obscure),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _confirmController,
+                        obscureText: _obscure,
+                        decoration: const InputDecoration(hintText: 'Confirm password...'),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _loading ? null : _register,
+                          child: _loading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                                )
+                              : const Text('Create account'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Already have an account? Log in'),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _confirmController,
-                obscureText: _obscure,
-                decoration: const InputDecoration(hintText: 'Confirm password...'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
-              ],
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: _loading ? null : _register,
-                child: _loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                      )
-                    : const Text('Create account'),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Already have an account? Log in'),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         ),
       ),

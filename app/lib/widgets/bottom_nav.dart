@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import '../../../theme/app_theme.dart';
+import 'dart:ui';
 
-/// Matches the wireframe's pill-shaped bottom nav: Home, AI, Search, Chat, Profile.
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+
+/// Frosted-glass pill nav: Home, AI, Search, Chat, Profile.
 class ClyroBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -17,42 +19,55 @@ class ClyroBottomNav extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Container(
-          height: 64,
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: AppColors.border, width: 1.6),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                selected: currentIndex == 0,
-                onTap: () => onTap(0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              height: 64,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.55),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              _NavItem(
-                label: 'AI',
-                selected: currentIndex == 1,
-                onTap: () => onTap(1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _NavItem(
+                    icon: Icons.home_outlined,
+                    selected: currentIndex == 0,
+                    onTap: () => onTap(0),
+                  ),
+                  _NavItem(
+                    label: 'AI',
+                    selected: currentIndex == 1,
+                    onTap: () => onTap(1),
+                  ),
+                  _NavItem(
+                    icon: Icons.search,
+                    selected: currentIndex == 2,
+                    onTap: () => onTap(2),
+                  ),
+                  _NavItem(
+                    icon: Icons.chat_bubble_outline,
+                    selected: currentIndex == 3,
+                    onTap: () => onTap(3),
+                  ),
+                  _NavItem(
+                    isProfile: true,
+                    selected: currentIndex == 4,
+                    onTap: () => onTap(4),
+                  ),
+                ],
               ),
-              _NavItem(
-                icon: Icons.search,
-                selected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.chat_bubble_outline,
-                selected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                isProfile: true,
-                selected: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -79,7 +94,7 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color activeColor =
         isProfile ? AppColors.primaryPurple : AppColors.accentBlue;
-    final Color color = selected ? activeColor : AppColors.navInactive;
+    final Color color = selected ? activeColor : AppColors.navInactive.withOpacity(0.65);
 
     Widget child;
     if (isProfile) {
@@ -87,26 +102,48 @@ class _NavItem extends StatelessWidget {
         radius: 16,
         backgroundColor: selected
             ? AppColors.primaryPurpleLight
-            : AppColors.primaryPurpleLight.withOpacity(0.6),
+            : AppColors.primaryPurpleLight.withOpacity(0.5),
         child: Icon(Icons.person_outline, size: 18, color: AppColors.primaryPurple),
       );
     } else if (label != null) {
-      child = Text(
-        label!,
+      child = AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 150),
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16,
           color: color,
         ),
+        child: Text(label!),
       );
     } else {
-      child = Icon(icon, color: color);
+      child = AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        child: Icon(icon, color: color, key: ValueKey(selected)),
+      );
     }
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(height: 64, width: 50, child: Center(child: child)),
+      child: SizedBox(
+        height: 64,
+        width: 50,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(child: child),
+            if (selected && !isProfile)
+              Positioned(
+                bottom: 12,
+                child: Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(color: activeColor, shape: BoxShape.circle),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
