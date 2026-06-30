@@ -1,0 +1,13 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Environment Variables / Secrets
+.env
+.env.*
+!.env.example
+
+# OS generated files
+.DS_Store
+Thumbs.db
