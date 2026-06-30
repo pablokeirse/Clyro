@@ -37,6 +37,8 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
     user: UserOut
 
+class GoogleLoginPayload(BaseModel):
+    id_token: str
 
 # ---- AI Chat ----
 
