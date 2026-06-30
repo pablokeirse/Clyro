@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
           child: Icon(Icons.person_outline, size: 44, color: AppColors.primaryPurple),
         ),
         const SizedBox(height: 12),
-        const Text('settings....', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 20),
         Expanded(
           child: ListView.separated(

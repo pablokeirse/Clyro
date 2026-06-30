@@ -109,37 +109,46 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   child: Icon(Icons.auto_awesome, size: 56, color: AppColors.accentBlue.withOpacity(0.25)),
                 ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  onSubmitted: (_) => _send(),
-                  decoration: const InputDecoration(
-                    hintText: 'Ask CLYROAI...',
-                    prefixIcon: Icon(Icons.add_circle_outline, color: AppColors.textPrimary),
-                  ),
+        
+        // Wrapped the input actions container inside a SafeArea to handle system overlays
+        SafeArea(
+          top: false,
+          bottom: true,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onSubmitted: (_) => _send(),
+                        decoration: const InputDecoration(
+                          hintText: 'Ask CLYROAI...',
+                          prefixIcon: Icon(Icons.add_circle_outline, color: AppColors.textPrimary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: AppColors.accentBlue,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
+                        onPressed: _send,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.accentBlue,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_upward, color: Colors.white, size: 18),
-                  onPressed: _send,
+                const SizedBox(height: 12),
+                const Text(
+                  'CLYROAI can make mistakes, always double check the responses.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Text(
-            'CLYROAI can make mistakes, always double check the responses.',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              ],
+            ),
           ),
         ),
       ],

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import '../widgets/logo_loader.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +19,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: ['email', 'profile'],
+  );
 
   @override
   void dispose() {
@@ -44,6 +49,44 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (e) {
       setState(() => _error = 'Could not log in. Check your details and that the backend is running.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      // 1. Trigger the Google Auth Native Overlay
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled the sign-in flow
+        setState(() => _loading = false);
+        return;
+      }
+
+      // 2. Obtain auth details from the request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        throw Exception("Could not retrieve Google ID Token");
+      }
+
+      // 3. Send the ID Token to your FastAPI backend
+      final data = await ApiService.instance.loginWithGoogle(idToken);
+      final userName = (data['user']?['name'] as String?) ?? 'User';
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => HomeScreen(userName: userName)),
+      );
+    } catch (e) {
+      setState(() => _error = 'Google Sign-In failed: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -93,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           borderRadius: BorderRadius.circular(18),
                         ),
-                        child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 30),
+                        child: const ClyroLogoLoader(size: 30),
                       ),
                       const SizedBox(height: 20),
                       RichText(
@@ -115,6 +158,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _loading ? null : _loginWithGoogle,
+                        icon: const Icon(Icons.g_mobiledata, size: 28), // Or a custom asset Google icon
+                        label: const Text('Continue with Google'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          side: const BorderSide(color: Colors.grey),
                         ),
                       ),
                       const SizedBox(height: 36),

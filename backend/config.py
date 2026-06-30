@@ -5,6 +5,7 @@ load_dotenv()
 
 
 class Settings:
+    GOOGLE_CLIENT_ID: str = os.getenv("Clyro_backend_Client_ID", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-secret-change-me")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")

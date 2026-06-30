@@ -27,11 +27,15 @@ class ApiService {
 
   // ---- Auth ----
 
-  Future<Map<String, dynamic>> register(String name, String email, String password) async {
+  Future<Map<String, dynamic>> register(String name, String email, String password, String phone, String address, String city, String state, String zip) async {
     final res = await dio.post('/api/auth/register', data: {
       'name': name,
       'email': email,
       'password': password,
+      'phone_number': phone,
+      'address': address,
+      'city': city,
+      'state': state,
     });
     _token = res.data['access_token'];
     return res.data;
@@ -45,6 +49,28 @@ class ApiService {
     _token = res.data['access_token'];
     return res.data;
   }
+
+  // ---- Google Auth ----
+
+  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
+      try {
+        // 1. Changed _dio to dio, and used your standard path formatting
+        final res = await dio.post(
+          '/api/auth/google', 
+          data: {'id_token': idToken},
+        );
+        
+        // 2. Dio parses the JSON data automatically into res.data
+        final data = res.data;
+        
+        // 3. Save the token exactly like you do in login() and register()
+        _token = data['access_token'];
+        
+        return data;
+      } catch (e) {
+        throw Exception('Network error during Google authentication: $e');
+      }
+    }
 
   // ---- Account ----
 

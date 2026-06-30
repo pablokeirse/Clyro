@@ -71,6 +71,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.accentBlue))
           : SafeArea(
+            child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -112,6 +113,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 ),
               ),
             ),
+          ),
     );
   }
 }

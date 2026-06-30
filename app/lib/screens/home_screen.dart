@@ -249,8 +249,8 @@ class _LearnHowClyroWorksTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final steps = [
-      ('1', 'Tell CLYROAI what you need'),
-      ('2', 'Get matched with nearby providers'),
+      ('1', 'Tell CLYROAI what you need OR upload a picture of your issue'),
+      ('2', 'Get matched with nearby providers and choose one to your liking.'),
       ('3', 'Chat, book, and get it done'),
     ];
     return ListView(

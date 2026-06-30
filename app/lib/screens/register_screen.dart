@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import 'home_screen.dart';
+import '../widgets/logo_loader.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,6 +14,11 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _zipController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   bool _obscure = true;
@@ -23,6 +29,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _zipController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
     super.dispose();
@@ -31,9 +42,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
+    final city = _cityController.text.trim();
+    final state = _stateController.text.trim();
+    final zip = _zipController.text.trim();
     final password = _passwordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
       setState(() => _error = 'Please fill in all fields.');
       return;
     }
@@ -52,14 +68,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final data = await ApiService.instance.register(name, email, password);
+      final data = await ApiService.instance.register(name, email, password, phone, address, city, state, zip);
       final userName = (data['user']?['name'] as String?) ?? name;
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => HomeScreen(userName: userName)),
       );
     } catch (e) {
-      setState(() => _error = 'Could not create your account. That email may already be in use.');
+      setState(() => _error = 'Could not create your account. $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -117,7 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           borderRadius: BorderRadius.circular(18),
                         ),
-                        child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 28),
+                        child: const ClyroLogoLoader(size: 56),
                       ),
                       const SizedBox(height: 20),
                       RichText(
@@ -156,9 +172,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
                       TextField(
+                        controller: _phoneController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(hintText: 'Phone number'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _addressController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(hintText: 'Address'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _cityController,
+                        keyboardType: TextInputType.text,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(hintText: 'City'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _stateController,
+                        keyboardType: TextInputType.text,
+                        textCapitalization: TextCapitalization.
+                        words,
+                        decoration: const InputDecoration(hintText: 'State/Country'),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
                         controller: _passwordController,
-                        obscureText: _obscure,
-                        decoration: InputDecoration(
+                          obscureText: _obscure,
+                          decoration: InputDecoration(
                           hintText: 'Password...',
                           suffixIcon: IconButton(
                             icon: Icon(
