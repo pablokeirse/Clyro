@@ -19,18 +19,18 @@
 
 ## Non tech related 
 
-Decide worker categories for MVP
+- Decide worker categories for MVP
 
-Decide what information workers need to provide when signing up
+- Decide what information workers need to provide when signing up
 
-Define verification requirements for workers
+- Define verification requirements for workers
 
-Define trust score factors
+- Define trust score factors
 
-Define customer job flow from posting to completion
+- Define customer job flow from posting to completion
 
-Write requirements for Vision AI
+- Write requirements for Vision AI
 
-Decide launch area for MVP
+- Decide launch area for MVP
 
-Define what features are MVP and what features are future roadmap
+- Define what features are MVP and what features are future roadmap
