@@ -57,6 +57,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _error = 'Password must be at least 8 characters.');
       return;
     }
+    if (!RegExp(r'[A-Z]').hasMatch(password) ||
+        !RegExp(r'[a-z]').hasMatch(password) ||
+        !RegExp(r'\d').hasMatch(password)) {
+      setState(() => _error =
+          'Password must include an uppercase letter, a lowercase letter, and a number.');
+      return;
+    }
     if (password != _confirmController.text) {
       setState(() => _error = 'Passwords do not match.');
       return;

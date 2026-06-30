@@ -7,7 +7,7 @@ from sqlalchemy.exc import OperationalError
 from config import settings
 from database import Base, engine, SessionLocal
 from models import ServiceProvider
-from routers import auth, ai, services, users
+from routers import auth, ai, services, users, messages, bookings
 
 try:
     Base.metadata.create_all(bind=engine)
@@ -61,6 +61,8 @@ app.include_router(auth.router)
 app.include_router(ai.router)
 app.include_router(services.router)
 app.include_router(users.router)
+app.include_router(messages.router)
+app.include_router(bookings.router)
 
 
 @app.get("/")

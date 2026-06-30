@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Float, Text, Boolean
+from sqlalchemy import Column, String, DateTime, ForeignKey, Float, Text, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -52,3 +52,60 @@ class ChatMessage(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="messages")
+
+
+class Conversation(Base):
+    """A single 1-1 thread between a user and a service provider."""
+
+    __tablename__ = "conversations"
+    __table_args__ = (UniqueConstraint("user_id", "provider_id", name="uq_conversation_user_provider"),)
+
+    id = Column(String(36), primary_key=True, default=gen_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    provider_id = Column(String(36), ForeignKey("service_providers.id"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    provider = relationship("ServiceProvider")
+    messages = relationship(
+        "DirectMessage", back_populates="conversation", cascade="all, delete-orphan",
+        order_by="DirectMessage.created_at",
+    )
+
+
+class DirectMessage(Base):
+    """A single message within a Conversation. sender is 'user' or 'provider'."""
+
+    __tablename__ = "direct_messages"
+
+    id = Column(String(36), primary_key=True, default=gen_uuid)
+    conversation_id = Column(String(36), ForeignKey("conversations.id"), nullable=False, index=True)
+    sender = Column(String(20), nullable=False)  # "user" or "provider"
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    conversation = relationship("Conversation", back_populates="messages")
+
+
+class Booking(Base):
+    """A user's service request with a provider, shown in the 'My services' tab."""
+
+    __tablename__ = "bookings"
+
+    STATUS_REQUESTED = "requested"
+    STATUS_SCHEDULED = "scheduled"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_COMPLETED = "completed"
+    STATUS_CANCELLED = "cancelled"
+
+    id = Column(String(36), primary_key=True, default=gen_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    provider_id = Column(String(36), ForeignKey("service_providers.id"), nullable=False, index=True)
+    status = Column(String(20), nullable=False, default=STATUS_REQUESTED)
+    scheduled_at = Column(DateTime, nullable=True)
+    notes = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    provider = relationship("ServiceProvider")

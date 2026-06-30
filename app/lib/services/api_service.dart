@@ -128,4 +128,41 @@ class ApiService {
     );
     return List<Map<String, dynamic>>.from(res.data);
   }
+
+  // ---- Direct messages ----
+
+  Future<List<Map<String, dynamic>>> getMessageThreads() async {
+    final res = await dio.get('/api/messages/threads', options: _authOptions);
+    return List<Map<String, dynamic>>.from(res.data);
+  }
+
+  Future<Map<String, dynamic>> getConversation(String providerId) async {
+    final res = await dio.get('/api/messages/$providerId', options: _authOptions);
+    return Map<String, dynamic>.from(res.data);
+  }
+
+  Future<Map<String, dynamic>> sendDirectMessage(String providerId, String content) async {
+    final res = await dio.post(
+      '/api/messages/$providerId',
+      data: {'content': content},
+      options: _authOptions,
+    );
+    return Map<String, dynamic>.from(res.data);
+  }
+
+  // ---- Bookings ----
+
+  Future<List<Map<String, dynamic>>> getMyBookings() async {
+    final res = await dio.get('/api/bookings', options: _authOptions);
+    return List<Map<String, dynamic>>.from(res.data);
+  }
+
+  Future<Map<String, dynamic>> createBooking(String providerId, {String? notes}) async {
+    final res = await dio.post(
+      '/api/bookings',
+      data: {'provider_id': providerId, if (notes != null) 'notes': notes},
+      options: _authOptions,
+    );
+    return Map<String, dynamic>.from(res.data);
+  }
 }

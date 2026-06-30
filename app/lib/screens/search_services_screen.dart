@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 import 'service_detail_screen.dart';
 
 class Provider {
+  final String id;
   final String name;
   final String info;
-  final double distanceKm;
-  Provider(this.name, this.info, this.distanceKm);
+  final double? distanceKm;
+  Provider(this.id, this.name, this.info, this.distanceKm);
+
+  factory Provider.fromJson(Map<String, dynamic> json) => Provider(
+        json['id'] as String,
+        json['name'] as String,
+        (json['info'] as String?) ?? '',
+        (json['distance_km'] as num?)?.toDouble(),
+      );
 }
 
 class SearchServicesScreen extends StatefulWidget {
@@ -21,16 +30,43 @@ class _SearchServicesScreenState extends State<SearchServicesScreen> {
   double _radiusKm = 5;
   final _searchController = TextEditingController();
 
-  final List<Provider> _allProviders = [
-    Provider('Plumber 1', 'Leak repair, pipe installation', 3.2),
-    Provider('Plumber 2', 'Emergency call-outs, 24/7', 3.2),
-    Provider('Plumber 3', 'Bathroom & kitchen specialist', 3.2),
-    Provider('Electrician 1', 'Wiring, rewiring, fuse boxes', 4.1),
-    Provider('Cleaner 1', 'Deep cleaning, move-out cleans', 1.8),
-  ];
+  List<Provider> _providers = [];
+  bool _loading = true;
+  String? _error;
 
-  List<Provider> get _filtered => _allProviders
-      .where((p) => p.name.toLowerCase().contains(_category.toLowerCase()) || _category == 'All')
+  @override
+  void initState() {
+    super.initState();
+    _loadProviders();
+  }
+
+  Future<void> _loadProviders() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await ApiService.instance.searchProviders(
+        category: _category,
+        radiusKm: _radiusKm,
+      );
+      if (!mounted) return;
+      setState(() {
+        _providers = data.map(Provider.fromJson).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Could not load providers. Make sure the backend is running.';
+        _loading = false;
+      });
+    }
+  }
+
+  List<Provider> get _filtered => _providers
+      .where((p) => _searchController.text.isEmpty ||
+          p.name.toLowerCase().contains(_searchController.text.toLowerCase()))
       .toList();
 
   void _openFilters() async {
@@ -46,6 +82,7 @@ class _SearchServicesScreenState extends State<SearchServicesScreen> {
         _category = result['category'];
         _radiusKm = result['radius'];
       });
+      _loadProviders();
     }
   }
 
@@ -62,6 +99,7 @@ class _SearchServicesScreenState extends State<SearchServicesScreen> {
               Expanded(
                 child: TextField(
                   controller: _searchController,
+                  onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
                     hintText: 'Search Services...',
                     prefixIcon: Icon(Icons.search, color: AppColors.textPrimary),
@@ -95,25 +133,46 @@ class _SearchServicesScreenState extends State<SearchServicesScreen> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.separated(
-              itemCount: _filtered.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (context, i) {
-                final p = _filtered[i];
-                return _ProviderCard(
-                  provider: p,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ServiceDetailScreen(
-                        providerName: p.name,
-                        info: p.info,
-                        distanceKm: p.distanceKm,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary)),
+                            const SizedBox(height: 12),
+                            TextButton(onPressed: _loadProviders, child: const Text('Retry')),
+                          ],
+                        ),
+                      )
+                    : _filtered.isEmpty
+                        ? const Center(
+                            child: Text('No providers found nearby.', style: TextStyle(color: AppColors.textSecondary)),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadProviders,
+                            child: ListView.separated(
+                              itemCount: _filtered.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 16),
+                              itemBuilder: (context, i) {
+                                final p = _filtered[i];
+                                return _ProviderCard(
+                                  provider: p,
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => ServiceDetailScreen(
+                                        providerId: p.id,
+                                        providerName: p.name,
+                                        info: p.info,
+                                        distanceKm: p.distanceKm ?? 0,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
           ),
         ],
       ),
@@ -159,13 +218,14 @@ class _ProviderCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(provider.info, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                       const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '${provider.distanceKm}Km away from your location',
-                          style: const TextStyle(fontSize: 11, color: AppColors.accentBlue, fontWeight: FontWeight.w600),
+                      if (provider.distanceKm != null)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '${provider.distanceKm}Km away from your location',
+                            style: const TextStyle(fontSize: 11, color: AppColors.accentBlue, fontWeight: FontWeight.w600),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

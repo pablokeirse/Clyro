@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
+import '../services/api_service.dart';
 import 'ai_chat_screen.dart';
 import 'search_services_screen.dart';
 import 'messages_screen.dart';
@@ -133,59 +134,135 @@ class _HomeTabPageState extends State<_HomeTabPage> {
   }
 }
 
-class _MyServicesTab extends StatelessWidget {
+class _MyServicesTab extends StatefulWidget {
   const _MyServicesTab();
 
   @override
-  Widget build(BuildContext context) {
-    final services = [
-      ('Plumbing repair', 'Completed · 2 weeks ago'),
-      ('Electrician visit', 'In progress'),
-      ('House cleaning', 'Scheduled · Friday 10:00'),
-    ];
+  State<_MyServicesTab> createState() => _MyServicesTabState();
+}
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-      children: [
-        const Text(
-          'Your recent requests',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+class _MyServicesTabState extends State<_MyServicesTab> {
+  List<Map<String, dynamic>> _bookings = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookings();
+  }
+
+  Future<void> _loadBookings() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await ApiService.instance.getMyBookings();
+      if (!mounted) return;
+      setState(() {
+        _bookings = data;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Could not load your requests. Make sure the backend is running.';
+        _loading = false;
+      });
+    }
+  }
+
+  String _statusLabel(String status, String? scheduledAt) {
+    switch (status) {
+      case 'completed':
+        return 'Completed';
+      case 'in_progress':
+        return 'In progress';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'scheduled':
+        return scheduledAt != null ? 'Scheduled · $scheduledAt' : 'Scheduled';
+      default:
+        return 'Requested';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary)),
+            const SizedBox(height: 12),
+            TextButton(onPressed: _loadBookings, child: const Text('Retry')),
+          ],
         ),
-        const SizedBox(height: 12),
-        ...services.map((s) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border, width: 1.4),
-                borderRadius: BorderRadius.circular(18),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadBookings,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        children: [
+          const Text(
+            'Your recent requests',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+          if (_bookings.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No service requests yet. Search for a provider and tap "Book now" to get started.',
+                style: TextStyle(color: AppColors.textSecondary),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.accentBlueLight,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.build_outlined, color: AppColors.accentBlue),
+            )
+          else
+            ..._bookings.map((b) => Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.border, width: 1.4),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(s.$1, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 2),
-                        Text(s.$2, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                      ],
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentBlueLight,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.build_outlined, color: AppColors.accentBlue),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(b['provider_name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 2),
+                            Text(
+                              _statusLabel(b['status'] as String, b['scheduled_at'] as String?),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    ],
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                ],
-              ),
-            )),
-      ],
+                )),
+        ],
+      ),
     );
   }
 }
